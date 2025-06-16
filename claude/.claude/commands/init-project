@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Claude Code Project Initialization
+# This command initializes a new project with proper Claude Code setup
+
+set -e
+
+echo "🚀 Initializing Claude Code project setup..."
+
+# Check if we're in a git repository
+if [ ! -d ".git" ]; then
+    echo "⚠️  Not in a git repository. Initialize git first with: git init"
+    exit 1
+fi
+
+# Create CLAUDE.md from template
+if [ ! -f "CLAUDE.md" ]; then
+    echo "📝 Creating CLAUDE.md from template..."
+    
+    # Try to find the template in common locations
+    TEMPLATE_PATH=""
+    if [ -f "$HOME/.dotfiles/claude/templates/CLAUDE.md" ]; then
+        TEMPLATE_PATH="$HOME/.dotfiles/claude/templates/CLAUDE.md"
+    elif [ -f "$HOME/dotfiles/claude/templates/CLAUDE.md" ]; then
+        TEMPLATE_PATH="$HOME/dotfiles/claude/templates/CLAUDE.md"
+    elif [ -f "$(dirname "$0")/../../templates/CLAUDE.md" ]; then
+        TEMPLATE_PATH="$(dirname "$0")/../../templates/CLAUDE.md"
+    fi
+    
+    if [ -n "$TEMPLATE_PATH" ]; then
+        cp "$TEMPLATE_PATH" CLAUDE.md
+        echo "✅ CLAUDE.md created from template"
+    else
+        echo "❌ Could not find CLAUDE.md template"
+        echo "💡 Please copy the template manually or ensure dotfiles are properly installed"
+    fi
+else
+    echo "ℹ️  CLAUDE.md already exists"
+fi
+
+# Create .claude directory if it doesn't exist
+if [ ! -d ".claude" ]; then
+    mkdir -p .claude/commands
+    echo "📁 Created .claude/commands directory"
+fi
+
+# Create common project files if they don't exist
+if [ ! -f ".gitignore" ]; then
+    echo "📋 Creating basic .gitignore..."
+    cat > .gitignore << EOF
+# Dependencies
+node_modules/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+EOF
+    echo "✅ .gitignore created"
+fi
+
+# Detect project type and suggest next steps
+echo ""
+echo "🎯 Project initialization complete!"
+echo ""
+echo "Next steps:"
+echo "1. Edit CLAUDE.md to add your project-specific information"
+echo "2. Update .gitignore if needed for your tech stack"
+
+# Detect common project types
+if [ -f "package.json" ]; then
+    echo "3. Detected Node.js project - consider running: npm install"
+elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
+    echo "3. Detected Python project - consider setting up virtual environment"
+elif [ -f "Cargo.toml" ]; then
+    echo "3. Detected Rust project - consider running: cargo build"
+elif [ -f "go.mod" ]; then
+    echo "3. Detected Go project - consider running: go mod tidy"
+fi
+
+echo "4. Start using Claude Code with better project context!"
+echo ""
+echo "💡 Pro tip: Use 'quality-check' command to validate your setup"
