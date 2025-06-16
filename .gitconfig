@@ -14,28 +14,34 @@
 	diffw = diff --color-words -p --stat
 	diffc = diff --color-words='.' -p --stat
 	diffnw = diff -w -p --stat
-	
 	# Show files ignored by git:
 	ign = ls-files -o -i --exclude-standard
-
 	assume   = update-index --assume-unchanged
 	unassume = update-index --no-assume-unchanged
 	assumed  = "!git ls-files -v | grep ^h | cut -c 3-"
 	up = "!git remote update -p; git merge --ff-only @{u}"
 	genignore = "!gi() { curl -sL http://www.gitignore.io/api/$@ ;}; gi"
-
-[user]
-	name = John Hogan
-	email = john@prolificinteractive.com
+	cu = !git branch --merged | egrep -v \"(^\\*|master|develop|development|main)\" | xargs git branch -d // Deletes all merged local branches
 [color]
 	branch = auto
 	diff = auto
 	interactive = auto
 	status = auto
-
 [push]
 	default = current
 [filter "hawser"]
 	clean = git hawser clean %f
 	smudge = git hawser smudge %f
+	required = true
+[fetch]
+	prune = true
+[core]
+	excludesfile = ~/.gitignore
+[user]
+	name = John Hogan
+	email = [INSERT EMAIL]
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
 	required = true
