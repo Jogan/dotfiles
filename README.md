@@ -1,14 +1,14 @@
 # Claude Code Enhanced Dotfiles
 
-A dotfiles repository enhanced with Claude Code templates, prompts, and commands to streamline development workflows.
+A curated library of templates, prompts, and commands designed to streamline development workflows when using Claude Code across any project.
 
-## Features
+## Purpose
 
-- **Traditional Dotfiles**: Git configuration and shell customizations
-- **Claude Code Templates**: Pre-configured CLAUDE.md templates for better project context
-- **Prompt Library**: Standardized prompts for code review, debugging, refactoring, and documentation
-- **Custom Commands**: Executable commands for common development workflows
-- **Easy Installation**: Automated setup script with symlink management
+This repository builds up a comprehensive collection of reusable Claude Code resources:
+- **Templates**: Standardized project context files (CLAUDE.md) for better AI assistance
+- **Prompt Library**: Battle-tested prompts for common development tasks
+- **Commands**: Executable workflow automation for project setup and management
+- **Dotfiles**: Essential development environment configuration
 
 ## Quick Start
 
@@ -25,77 +25,50 @@ cd ~/dotfiles
 
 ```
 dotfiles/
-├── .gitconfig                  # Git configuration
-├── install.sh                 # Setup script
-├── README.md                  # This file
-└── claude/                    # Claude Code enhancements
+├── .gitconfig                     # Git configuration with useful aliases
+├── install.sh                    # Setup script with symlink management
+├── README.md                     # This file
+└── claude/                       # Claude Code resource library
     ├── templates/
-    │   └── CLAUDE.md          # Base project template
-    ├── prompts/
-    │   ├── code-review.md     # Code review assistance
-    │   ├── debugging.md       # Debugging help
-    │   ├── refactoring.md     # Refactoring guidance
-    │   └── documentation.md   # Documentation generation
+    │   └── CLAUDE.md             # Comprehensive project context template
+    ├── prompts/                  # Standardized prompt collection
+    │   ├── code-review.md        # Structured code review requests
+    │   ├── debugging.md          # Systematic debugging assistance
+    │   ├── refactoring.md        # Code improvement guidance
+    │   ├── documentation.md      # Documentation generation
+    │   └── rubber-duck-debug.md  # Problem-solving discussions
     └── .claude/
-        └── commands/          # Executable commands
-            ├── init-project   # Initialize project with Claude context
-            ├── setup-testing  # Configure testing infrastructure
-            ├── quality-check  # Run comprehensive quality checks
-            └── deploy-prep    # Pre-deployment validation
+        └── commands/             # Development workflow commands
+            ├── init-project      # Initialize projects with Claude context
+            └── reflection.md     # Meta-prompt for improving instructions
 ```
 
-## Claude Code Commands
+## Available Resources
 
+### Commands
 After installation, these commands are available in any project:
 
-### `init-project`
-Initializes a new project with proper Claude Code setup:
+**`init-project`** - Initialize new projects with Claude Code setup:
 - Creates CLAUDE.md from template
-- Sets up .claude/commands directory
+- Sets up .claude/commands directory  
 - Creates basic .gitignore
-- Provides project-specific next steps
-
-### `setup-testing`
-Configures testing infrastructure based on project type:
 - Detects project type (Node.js, Python, Rust, Go)
-- Creates appropriate test directory structure
-- Sets up example test files
-- Provides framework-specific guidance
 
-### `quality-check`
-Runs comprehensive quality checks:
-- Linting and formatting
-- Type checking
-- Test execution
-- Security audits
-- Build validation
-
-### `deploy-prep`
-Pre-deployment validation and preparation:
-- Git status and branch checks
-- Build and test validation
-- Security and environment checks
-- Deployment readiness summary
-
-## Templates
-
-### CLAUDE.md Template
-A comprehensive template for project context including:
-- Project overview and tech stack
-- Directory structure documentation
+### Templates
+**CLAUDE.md** - Comprehensive project context template including:
+- Project overview and tech stack documentation
+- Directory structure and architecture notes
 - Development commands and workflows
-- Code style and conventions
-- Testing strategy
-- Common issues and solutions
+- Code conventions and testing strategy
 
-## Prompts Library
-
+### Prompt Library
 Standardized prompts for consistent Claude Code interactions:
 
-- **code-review.md**: Structured code review requests
-- **debugging.md**: Systematic debugging assistance
-- **refactoring.md**: Code improvement and restructuring
-- **documentation.md**: Documentation generation guidance
+- **code-review.md** - Structured code review requests with quality focus
+- **debugging.md** - Systematic debugging assistance with context gathering
+- **refactoring.md** - Code improvement guidance with clear goals and constraints
+- **documentation.md** - Documentation generation with audience targeting
+- **rubber-duck-debug.md** - Persistent problem-solving discussion prompts
 
 ## Usage Examples
 
@@ -103,75 +76,44 @@ Standardized prompts for consistent Claude Code interactions:
 ```bash
 cd my-new-project
 init-project
-# Edit CLAUDE.md with project-specific information
+# Edit generated CLAUDE.md with project-specific information
 ```
 
-### Running quality checks
-```bash
-quality-check
-# Reviews code quality, runs tests, checks security
-```
-
-### Preparing for deployment
-```bash
-deploy-prep
-# Validates deployment readiness with comprehensive checks
-```
-
-### Using prompts with Claude Code
-1. Copy content from `~/.dotfiles/claude/prompts/code-review.md`
+### Using prompt templates
+1. Copy content from `~/.dotfiles/claude/prompts/[prompt-name].md`
 2. Paste into Claude Code session
 3. Fill in the specific details for your use case
+4. Get consistent, structured assistance
 
-## Installation Details
+## Installation
 
-The installer:
+The installer creates symlinks and sets up the Claude Code resource library:
 1. Backs up existing dotfiles
 2. Creates symlinks to your home directory
-3. Sets up Claude enhancements in `~/.dotfiles/claude`
+3. Sets up Claude resources in `~/.dotfiles/claude`
 4. Makes commands executable
 5. Provides PATH setup instructions
 
-## Customization
+## Expanding the Library
 
-### Adding new commands
+### Adding Commands
 1. Create executable script in `claude/.claude/commands/`
-2. Follow existing command patterns
-3. Update this README with usage instructions
+2. Follow existing patterns for project type detection
+3. Test across different project types
 
-### Modifying templates
-1. Edit files in `claude/templates/`
-2. Changes apply to all future `init-project` uses
+### Adding Templates  
+1. Create new templates in `claude/templates/`
+2. Reference from commands or document usage
+3. Include clear customization points
 
-### Adding prompts
+### Adding Prompts
 1. Create new .md files in `claude/prompts/`
-2. Follow existing prompt structure
-3. Include clear instructions and examples
-
-## Supported Project Types
-
-Commands automatically detect and support:
-- **Node.js** (package.json)
-- **Python** (requirements.txt, pyproject.toml)
-- **Rust** (Cargo.toml)
-- **Go** (go.mod)
+2. Include structured sections and examples
+3. Test for consistency and effectiveness
 
 ## Benefits
 
-- **Faster Project Setup**: Quick initialization with proper Claude context
-- **Consistent Workflows**: Standardized commands across all projects
-- **Better Claude Interactions**: Rich context and structured prompts
-- **Quality Assurance**: Automated checks and validations
-- **Deployment Safety**: Pre-deployment verification
-
-## Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Add/modify commands, templates, or prompts
-4. Test with the install script
-5. Submit pull request
-
-## License
-
-MIT License - see LICENSE file for details
+- **Consistent Setup**: Standardized project initialization across all work
+- **Better AI Interactions**: Rich context and proven prompt patterns
+- **Faster Development**: Reusable templates and commands reduce setup time
+- **Knowledge Sharing**: Capture and reuse effective Claude Code workflows
