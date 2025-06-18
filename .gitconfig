@@ -38,8 +38,8 @@
 [core]
 	excludesfile = ~/.gitignore
 [user]
-	name = John Hogan
-	email = [INSERT EMAIL]
+	name = [INSERT NAME HERE]
+	email = [INSERT EMAIL HERE]
 [filter "lfs"]
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
