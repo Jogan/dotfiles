@@ -541,6 +541,17 @@ const createPayment = (
   // implementation
 };
 
+// Calling it is unclear
+const payment = createPayment(
+  100,
+  "GBP",
+  "card_123",
+  "cust_456",
+  undefined,
+  { orderId: "order_789" },
+  "key_123"
+);
+
 // Good: Options object with clear property names
 type CreatePaymentOptions = {
   amount: number;
@@ -575,8 +586,102 @@ const payment = createPayment({
   metadata: { orderId: "order_789" },
   idempotencyKey: "key_123",
 });
+
+// Avoid: Boolean flags as parameters
+const fetchCustomers = (
+  includeInactive: boolean,
+  includePending: boolean,
+  includeDeleted: boolean,
+  sortByDate: boolean
+): Customer[] => {
+  // implementation
+};
+
+// Confusing at call site
+const customers = fetchCustomers(true, false, false, true);
+
+// Good: Options object with clear intent
+type FetchCustomersOptions = {
+  includeInactive?: boolean;
+  includePending?: boolean;
+  includeDeleted?: boolean;
+  sortBy?: "date" | "name" | "value";
+};
+
+const fetchCustomers = (options: FetchCustomersOptions = {}): Customer[] => {
+  const {
+    includeInactive = false,
+    includePending = false,
+    includeDeleted = false,
+    sortBy = "name",
+  } = options;
+
+  // implementation
+};
+
+// Self-documenting at call site
+const customers = fetchCustomers({
+  includeInactive: true,
+  sortBy: "date",
+});
+
+// Good: Configuration objects for complex operations
+type ProcessOrderOptions = {
+  order: Order;
+  shipping: {
+    method: "standard" | "express" | "overnight";
+    address: Address;
+  };
+  payment: {
+    method: PaymentMethod;
+    saveForFuture?: boolean;
+  };
+  promotions?: {
+    codes?: string[];
+    autoApply?: boolean;
+  };
+};
+
+const processOrder = (options: ProcessOrderOptions): ProcessedOrder => {
+  const { order, shipping, payment, promotions = {} } = options;
+
+  // Clear access to nested options
+  const orderWithPromotions = promotions.autoApply
+    ? applyAvailablePromotions(order)
+    : order;
+
+  return executeOrder({
+    ...orderWithPromotions,
+    shippingMethod: shipping.method,
+    paymentMethod: payment.method,
+  });
+};
+
+// Acceptable: Single parameter for simple transforms
+const double = (n: number): number => n * 2;
+const getName = (user: User): string => user.name;
+
+// Acceptable: Well-established patterns
+const numbers = [1, 2, 3];
+const doubled = numbers.map((n) => n * 2);
+const users = fetchUsers();
+const names = users.map((user) => user.name);
 ```
 
+**Guidelines for options objects:**
+
+- Default to options objects unless there's a specific reason not to
+- Always use for functions with optional parameters
+- Destructure options at the start of the function for clarity
+- Provide sensible defaults using destructuring
+- Keep related options grouped (e.g., all shipping options together)
+- Consider breaking very large options objects into nested groups
+
+**When positional parameters are acceptable:**
+
+- Single-parameter pure functions
+- Well-established functional patterns (map, filter, reduce callbacks)
+- Mathematical operations where order is conventional
 
 ## Development Workflow
 
