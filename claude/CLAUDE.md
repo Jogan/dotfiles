@@ -1074,6 +1074,105 @@ git add .
 git commit -m "refactor: extract payment validation helpers"
 ```
 
+#### Refactoring Checklist
+
+Before considering refactoring complete, verify:
+
+- [ ] The refactoring actually improves the code (if not, don't refactor)
+- [ ] All tests still pass without modification
+- [ ] All static analysis tools pass (linting, type checking)
+- [ ] No new public APIs were added (only internal ones)
+- [ ] Code is more readable than before
+- [ ] Any duplication removed was duplication of knowledge, not just code
+- [ ] No speculative abstractions were created
+- [ ] The refactoring is committed separately from feature changes
+
+#### Example Refactoring Session
+
+```typescript
+// After getting tests green with minimal implementation:
+describe("Order processing", () => {
+  it("calculates total with items and shipping", () => {
+    const order = { items: [{ price: 30 }, { price: 20 }], shipping: 5 };
+    expect(calculateOrderTotal(order)).toBe(55);
+  });
+
+  it("applies free shipping over £50", () => {
+    const order = { items: [{ price: 30 }, { price: 25 }], shipping: 5 };
+    expect(calculateOrderTotal(order)).toBe(55);
+  });
+});
+
+// Green implementation (minimal):
+const calculateOrderTotal = (order: Order): number => {
+  const itemsTotal = order.items.reduce((sum, item) => sum + item.price, 0);
+  const shipping = itemsTotal > 50 ? 0 : order.shipping;
+  return itemsTotal + shipping;
+};
+
+// Commit the working version
+// git commit -m "feat: implement order total calculation with free shipping"
+
+// Assess refactoring opportunities:
+// - The variable names could be clearer
+// - The free shipping threshold is a magic number
+// - The calculation logic could be extracted for clarity
+// These improvements would add value, so proceed with refactoring:
+
+const FREE_SHIPPING_THRESHOLD = 50;
+
+const calculateItemsTotal = (items: OrderItem[]): number => {
+  return items.reduce((sum, item) => sum + item.price, 0);
+};
+
+const calculateShipping = (
+  baseShipping: number,
+  itemsTotal: number
+): number => {
+  return itemsTotal > FREE_SHIPPING_THRESHOLD ? 0 : baseShipping;
+};
+
+const calculateOrderTotal = (order: Order): number => {
+  const itemsTotal = calculateItemsTotal(order.items);
+  const shipping = calculateShipping(order.shipping, itemsTotal);
+  return itemsTotal + shipping;
+};
+
+// Run tests - they still pass!
+// Run linting - all clean!
+// Run type checking - no errors!
+
+// Now commit the refactoring
+// git commit -m "refactor: extract order total calculation helpers"
+```
+
+##### Example: When NOT to Refactor
+
+```typescript
+// After getting this test green:
+describe("Discount calculation", () => {
+  it("should apply 10% discount", () => {
+    const originalPrice = 100;
+    const discountedPrice = applyDiscount(originalPrice, 0.1);
+    expect(discountedPrice).toBe(90);
+  });
+});
+
+// Green implementation:
+const applyDiscount = (price: number, discountRate: number): number => {
+  return price * (1 - discountRate);
+};
+
+// Assess refactoring opportunities:
+// - Code is already simple and clear
+// - Function name clearly expresses intent
+// - Implementation is a straightforward calculation
+// - No magic numbers or unclear logic
+// Conclusion: No refactoring needed. This is fine as-is.
+
+// Commit and move to the next test
+// git commit -m "feat: add discount calculation"
+```
 
 ### Commit Guidelines
 
