@@ -604,186 +604,128 @@ Follow Red-Green-Refactor strictly:
 
 ```typescript
 // Step 1: Red - Start with the simplest behavior
-describe("Order processing with payment", () => {
-  let fakePaymentGateway: FakePaymentGateway;
-  let fakeDatabase: FakeDatabase;
-  let fakeEmailService: FakeEmailService;
+describe("Order processing", () => {
+  let fakeShippingService: FakeShippingService;
 
   beforeEach(() => {
-    fakePaymentGateway = new FakePaymentGateway();
-    fakeDatabase = new FakeDatabase();
-    fakeEmailService = new FakeEmailService();
+    fakeShippingService = new FakeShippingService();
   });
 
-  it("should complete full order workflow successfully", async () => {
-    const order = getMockOrder({ 
-      items: [{ price: 30, quantity: 1 }], 
-      customerId: 'cust_123'
-    });
-    const customer = fakeDatabase.seedCustomer({ 
-      id: 'cust_123', 
-      email: 'test@example.com' 
+  it("should calculate total with shipping cost", () => {
+    const order = createOrder({
+      items: [{ price: 30, quantity: 1 }],
+      shippingCost: 5.99,
     });
 
-    const result = await processOrder(order, {
-      paymentGateway: fakePaymentGateway,
-      database: fakeDatabase,
-      emailService: fakeEmailService
+    const processed = processOrder(order, {
+      shippingService: fakeShippingService
     });
 
-    expect(result.success).toBe(true);
-    expect(result.data.status).toBe('completed');
-    
-    // Verify realistic end-to-end behavior
-    const storedOrder = await fakeDatabase.getOrderById(result.data.id);
-    expect(storedOrder?.status).toBe('completed');
-    
-    const processedPayments = fakePaymentGateway.getProcessedTransactions();
-    expect(processedPayments).toHaveLength(1);
-    expect(processedPayments[^0].amount).toBe(30);
-    
-    const sentEmails = fakeEmailService.getEmailsSentTo('test@example.com');
-    expect(sentEmails).toHaveLength(1);
-    expect(sentEmails[^0].subject).toContain('Order Confirmation');
+    expect(processed.total).toBe(35.99);
+    expect(processed.shippingCost).toBe(5.99);
   });
 });
 
 // Step 2: Green - Minimal implementation
 interface OrderServices {
-  paymentGateway: PaymentGateway;
-  database: Database;
-  emailService: EmailService;
+  shippingService: ShippingService;
 }
 
-const processOrder = async (
-  order: Order, 
-  services: OrderServices
-): Promise<Result<ProcessedOrder, OrderError>> => {
-
-  const payment = await services.paymentGateway.processPayment({
-    amount: order.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    currency: 'GBP',
-    customerId: order.customerId
-  });
-
-  const processedOrder: ProcessedOrder = {
-    ...order,
-    id: `order_${Date.now()}`,
-    status: 'completed',
-    paymentId: payment.id
-  };
-
-  await services.database.saveOrder(processedOrder);
-  
-  const customer = await services.database.getCustomerById(order.customerId);
-  await services.emailService.sendOrderConfirmation(
-    customer.email, 
-    processedOrder
+const processOrder = (order: Order, services: OrderServices): ProcessedOrder => {
+  const itemsTotal = order.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
   );
 
-  return { success: true, data: processedOrder };
+  return {
+    ...order,
+    shippingCost: order.shippingCost,
+    total: itemsTotal + order.shippingCost,
+  };
 };
 
-// Step 3: Red - Add test for payment failure scenario
-it("should handle payment failures gracefully", async () => {
-  fakePaymentGateway.simulateNextFailure();
-  const order = getMockOrder({ items: [{ price: 30, quantity: 1 }] });
-
-  const result = await processOrder(order, {
-    paymentGateway: fakePaymentGateway,
-    database: fakeDatabase,
-    emailService: fakeEmailService
+// Step 3: Red - Add test for free shipping behavior
+describe("Order processing", () => {
+  it("should calculate total with shipping cost", () => {
+    // ... existing test
   });
 
-  expect(result.success).toBe(false);
-  expect(result.error.message).toContain('payment failed');
-  
-  const storedOrders = await fakeDatabase.getAllOrders();
-  expect(storedOrders).toHaveLength(0);
-  
-  const sentEmails = fakeEmailService.getAllSentEmails();
-  expect(sentEmails).toHaveLength(0);
-});
+  it("should apply free shipping for orders over £50", () => {
+    const order = createOrder({
+      items: [{ price: 60, quantity: 1 }],
+      shippingCost: 5.99,
+    });
+    
+    fakeShippingService.setFreeShippingThreshold(50);
 
-// Step 4: Green - Add error handling
-const processOrder = async (
-  order: Order, 
-  services: OrderServices
-): Promise<Result<ProcessedOrder, OrderError>> => {
-  try {
-    const payment = await services.paymentGateway.processPayment({
-      amount: order.items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-      currency: 'GBP',
-      customerId: order.customerId
+    const processed = processOrder(order, {
+      shippingService: fakeShippingService
     });
 
-    const processedOrder: ProcessedOrder = {
-      ...order,
-      id: `order_${Date.now()}`,
-      status: 'completed',
-      paymentId: payment.id
-    };
+    expect(processed.shippingCost).toBe(0);
+    expect(processed.total).toBe(60);
+  });
+});
 
-    await services.database.saveOrder(processedOrder);
-    
-    const customer = await services.database.getCustomerById(order.customerId);
-    await services.emailService.sendOrderConfirmation(
-      customer.email, 
-      processedOrder
-    );
+// Step 4: Green - NOW we can add the conditional because both paths are tested
+const processOrder = (order: Order, services: OrderServices): ProcessedOrder => {
+  const itemsTotal = order.items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-    return { success: true, data: processedOrder };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: new OrderError(`Order processing failed: payment failed`) 
-    };
-  }
+  const shippingCost = services.shippingService.calculateShipping(
+    itemsTotal,
+    order.shippingCost
+  );
+
+  return {
+    ...order,
+    shippingCost,
+    total: itemsTotal + shippingCost,
+  };
 };
 
-// Step 5: Refactor - Extract functions and improve structure
-const calculateOrderTotal = (items: OrderItem[]): number => {
+// Step 5: Add edge case tests to ensure 100% behavior coverage
+describe("Order processing", () => {
+  // ... existing tests
+
+  it("should charge shipping for orders exactly at £50", () => {
+    const order = createOrder({
+      items: [{ price: 50, quantity: 1 }],
+      shippingCost: 5.99,
+    });
+    
+    fakeShippingService.setFreeShippingThreshold(50);
+
+    const processed = processOrder(order, {
+      shippingService: fakeShippingService
+    });
+
+    expect(processed.shippingCost).toBe(5.99);
+    expect(processed.total).toBe(55.99);
+  });
+});
+
+// Step 6: Refactor - Extract constants and improve readability
+const FREE_SHIPPING_THRESHOLD = 50;
+
+const calculateItemsTotal = (items: OrderItem[]): number => {
   return items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 };
 
-const createPaymentRequest = (order: Order): PaymentRequest => {
+const processOrder = (order: Order, services: OrderServices): ProcessedOrder => {
+  const itemsTotal = calculateItemsTotal(order.items);
+  const shippingCost = services.shippingService.calculateShipping(
+    itemsTotal,
+    order.shippingCost
+  );
+
   return {
-    amount: calculateOrderTotal(order.items),
-    currency: 'GBP',
-    customerId: order.customerId
+    ...order,
+    shippingCost,
+    total: itemsTotal + shippingCost,
   };
-};
-
-const processOrder = async (
-  order: Order, 
-  services: OrderServices
-): Promise<Result<ProcessedOrder, OrderError>> => {
-  try {
-    const paymentRequest = createPaymentRequest(order);
-    const payment = await services.paymentGateway.processPayment(paymentRequest);
-
-    const processedOrder: ProcessedOrder = {
-      ...order,
-      id: `order_${Date.now()}`,
-      status: 'completed',
-      paymentId: payment.id
-    };
-
-    await services.database.saveOrder(processedOrder);
-    
-    const customer = await services.database.getCustomerById(order.customerId);
-    await services.emailService.sendOrderConfirmation(
-      customer.email, 
-      processedOrder
-    );
-
-    return { success: true, data: processedOrder };
-  } catch (error) {
-    return { 
-      success: false, 
-      error: new OrderError(`Order processing failed: ${error.message}`) 
-    };
-  }
 };
 ```
 
